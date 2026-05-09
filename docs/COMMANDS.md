@@ -161,7 +161,7 @@ ca6fe6d6332c  kiro-gateway           kiro-gateway-kiro-gateway            runnin
 195dd60e14b7  mikrotail-bridge       mikrotail-rs:dev                     exited   Exited (137) 2 weeks ago
 ```
 
-**⚠️ Pagination Limitation:** This command returns a maximum of 20 containers per page from the server. The CLI does **not** expose a `--page` or `--start` flag, so containers beyond the first 20 are hidden. Check `.pagination` in `--json` output to see if more pages exist. Use `docker` directly on the host as a workaround if needed.
+**Pagination:** Returns 20 items per page. Use `--start 20` for page 2, `--start 40` for page 3, etc. Check `.pagination` in `--json` output for totals.
 
 ### `arcane containers counts`
 
