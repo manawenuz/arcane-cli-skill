@@ -26,10 +26,6 @@ entryPoints:
               - "*.tailscale.amn.gg"
 
 providers:
-  docker:
-    exposedByDefault: false
-    network: public
-    watch: true
   file:
     filename: /etc/traefik/dynamic.yml
     watch: true
@@ -42,7 +38,8 @@ certificatesResolvers:
       caServer: https://acme-v02.api.letsencrypt.org/directory
       dnsChallenge:
         provider: porkbun
-        delayBeforeCheck: 60
+        propagation:
+          delayBeforeChecks: 60
         resolvers:
           - "1.1.1.1:53"
           - "8.8.8.8:53"
@@ -53,7 +50,8 @@ certificatesResolvers:
       caServer: https://acme-v02.api.letsencrypt.org/directory
       dnsChallenge:
         provider: cloudflare
-        delayBeforeCheck: 10
+        propagation:
+          delayBeforeChecks: 10
         resolvers:
           - "1.1.1.1:53"
           - "8.8.8.8:53"

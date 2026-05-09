@@ -20,9 +20,8 @@ http:
           X-Real-IP: "{client_ip}"
 
   routers:
-    # ─── adguard ───
     adguard:
-      rule: "Host(`adguard.tbs.amn.gg`, `adguard.tailscale.amn.gg`)"
+      rule: "Host(`adguard.tbs.amn.gg`) || Host(`adguard.tailscale.amn.gg`)"
       service: adguard
       tls:
         certResolver: porkbun
@@ -30,9 +29,8 @@ http:
         - security-headers
         - compress
 
-    # ─── matrix well-known (amn.gg) ───
     amn-wellknown-server:
-      rule: "Host(`amn.gg`, `amn.tailscale.amn.gg`) && Path(`/.well-known/matrix/server`)"
+      rule: "(Host(`amn.gg`) || Host(`amn.tailscale.amn.gg`)) && Path(`/.well-known/matrix/server`)"
       service: dendrite-wellknown-server
       tls:
         certResolver: porkbun
@@ -40,7 +38,7 @@ http:
         - security-headers
 
     amn-wellknown-client:
-      rule: "Host(`amn.gg`, `amn.tailscale.amn.gg`) && Path(`/.well-known/matrix/client`)"
+      rule: "(Host(`amn.gg`) || Host(`amn.tailscale.amn.gg`)) && Path(`/.well-known/matrix/client`)"
       service: dendrite-wellknown-client
       tls:
         certResolver: porkbun
@@ -48,7 +46,7 @@ http:
         - security-headers
 
     amn-default:
-      rule: "Host(`amn.gg`, `amn.tailscale.amn.gg`)"
+      rule: "Host(`amn.gg`) || Host(`amn.tailscale.amn.gg`)"
       service: dendrite
       tls:
         certResolver: porkbun
@@ -56,9 +54,8 @@ http:
         - security-headers
         - compress
 
-    # ─── arcane ───
     arcane:
-      rule: "Host(`arcane.tbs.amn.gg`, `arcane.tailscale.amn.gg`)"
+      rule: "Host(`arcane.tbs.amn.gg`) || Host(`arcane.tailscale.amn.gg`)"
       service: arcane
       tls:
         certResolver: porkbun
@@ -66,9 +63,8 @@ http:
         - security-headers
         - compress
 
-    # ─── bitwarden ───
     bitwarden-notifications:
-      rule: "Host(`bitwarden.amn.gg`, `bitwarden.tbs.amn.gg`, `bt.tbs.amn.gg`, `bitwarden.tailscale.amn.gg`) && PathPrefix(`/notifications/hub`)"
+      rule: "(Host(`bitwarden.amn.gg`) || Host(`bitwarden.tbs.amn.gg`) || Host(`bt.tbs.amn.gg`) || Host(`bitwarden.tailscale.amn.gg`)) && PathPrefix(`/notifications/hub`)"
       service: bitwarden-ws
       tls:
         certResolver: porkbun
@@ -76,7 +72,7 @@ http:
         - bw-ws-headers
 
     bitwarden:
-      rule: "Host(`bitwarden.amn.gg`, `bitwarden.tbs.amn.gg`, `bt.tbs.amn.gg`, `bitwarden.tailscale.amn.gg`)"
+      rule: "Host(`bitwarden.amn.gg`) || Host(`bitwarden.tbs.amn.gg`) || Host(`bt.tbs.amn.gg`) || Host(`bitwarden.tailscale.amn.gg`)"
       service: bitwarden
       tls:
         certResolver: porkbun
@@ -84,9 +80,8 @@ http:
         - security-headers
         - compress
 
-    # ─── git (forgejo) ───
     git:
-      rule: "Host(`git.tbs.amn.gg`, `git.tailscale.amn.gg`)"
+      rule: "Host(`git.tbs.amn.gg`) || Host(`git.tailscale.amn.gg`)"
       service: forgejo
       tls:
         certResolver: porkbun
@@ -94,9 +89,8 @@ http:
         - security-headers
         - compress
 
-    # ─── grafana ───
     grafana:
-      rule: "Host(`grafana.tbs.amn.gg`, `grafana.tailscale.amn.gg`)"
+      rule: "Host(`grafana.tbs.amn.gg`) || Host(`grafana.tailscale.amn.gg`)"
       service: grafana
       tls:
         certResolver: porkbun
@@ -104,9 +98,8 @@ http:
         - security-headers
         - compress
 
-    # ─── matrix well-known (matrix.amn.gg) ───
     matrix-wellknown-server:
-      rule: "Host(`matrix.amn.gg`, `matrix.tailscale.amn.gg`) && Path(`/.well-known/matrix/server`)"
+      rule: "(Host(`matrix.amn.gg`) || Host(`matrix.tailscale.amn.gg`)) && Path(`/.well-known/matrix/server`)"
       service: dendrite-wellknown-server
       tls:
         certResolver: porkbun
@@ -114,7 +107,7 @@ http:
         - security-headers
 
     matrix-wellknown-client:
-      rule: "Host(`matrix.amn.gg`, `matrix.tailscale.amn.gg`) && Path(`/.well-known/matrix/client`)"
+      rule: "(Host(`matrix.amn.gg`) || Host(`matrix.tailscale.amn.gg`)) && Path(`/.well-known/matrix/client`)"
       service: dendrite-wellknown-client
       tls:
         certResolver: porkbun
@@ -122,7 +115,7 @@ http:
         - security-headers
 
     matrix-default:
-      rule: "Host(`matrix.amn.gg`, `matrix.tailscale.amn.gg`)"
+      rule: "Host(`matrix.amn.gg`) || Host(`matrix.tailscale.amn.gg`)"
       service: dendrite
       tls:
         certResolver: porkbun
@@ -130,9 +123,8 @@ http:
         - security-headers
         - compress
 
-    # ─── maxun (external IPs) ───
     maxun-api:
-      rule: "Host(`maxun-api.tbs.amn.gg`, `maxun-api.tailscale.amn.gg`)"
+      rule: "Host(`maxun-api.tbs.amn.gg`) || Host(`maxun-api.tailscale.amn.gg`)"
       service: maxun-api
       tls:
         certResolver: porkbun
@@ -141,7 +133,7 @@ http:
         - compress
 
     maxun:
-      rule: "Host(`maxun.tbs.amn.gg`, `maxun.tailscale.amn.gg`)"
+      rule: "Host(`maxun.tbs.amn.gg`) || Host(`maxun.tailscale.amn.gg`)"
       service: maxun
       tls:
         certResolver: porkbun
@@ -149,9 +141,8 @@ http:
         - security-headers
         - compress
 
-    # ─── metube ───
     metube:
-      rule: "Host(`metube.tbs.amn.gg`, `metube.tailscale.amn.gg`)"
+      rule: "Host(`metube.tbs.amn.gg`) || Host(`metube.tailscale.amn.gg`)"
       service: metube
       tls:
         certResolver: porkbun
@@ -159,9 +150,8 @@ http:
         - security-headers
         - compress
 
-    # ─── stash ───
     stash-manwe:
-      rule: "Host(`stash.manwe.amn.gg`, `stash-manwe.tailscale.amn.gg`)"
+      rule: "Host(`stash.manwe.amn.gg`) || Host(`stash-manwe.tailscale.amn.gg`)"
       service: stash
       tls:
         certResolver: porkbun
@@ -170,7 +160,7 @@ http:
         - compress
 
     stash-tbs:
-      rule: "Host(`stash.tbs.amn.gg`, `stash.tailscale.amn.gg`)"
+      rule: "Host(`stash.tbs.amn.gg`) || Host(`stash.tailscale.amn.gg`)"
       service: stash
       tls:
         certResolver: porkbun
@@ -178,9 +168,8 @@ http:
         - security-headers
         - compress
 
-    # ─── warsmash ───
     warsmash:
-      rule: "Host(`warsmash.tbs.amn.gg`, `warsmash.tailscale.amn.gg`)"
+      rule: "Host(`warsmash.tbs.amn.gg`) || Host(`warsmash.tailscale.amn.gg`)"
       service: warsmash
       tls:
         certResolver: porkbun
@@ -188,9 +177,8 @@ http:
         - security-headers
         - compress
 
-    # ─── traefik dashboard ───
     traefik-dash:
-      rule: "Host(`nginx.tbs.amn.gg`, `traefik.tailscale.amn.gg`)"
+      rule: "Host(`nginx.tbs.amn.gg`) || Host(`traefik.tailscale.amn.gg`)"
       service: api@internal
       tls:
         certResolver: porkbun

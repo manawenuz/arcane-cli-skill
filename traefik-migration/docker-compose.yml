@@ -1,6 +1,6 @@
 services:
   traefik:
-    image: traefik:v3.3
+    image: traefik:v3.7
     container_name: traefik
     restart: unless-stopped
     ports:
@@ -12,17 +12,12 @@ services:
       - /var/data/traefik/traefik.yml:/etc/traefik/traefik.yml:ro
       - /var/data/traefik/dynamic.yml:/etc/traefik/dynamic.yml:ro
       - /var/data/traefik/certs:/letsencrypt
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    environment:
-      - PORKBUN_API_KEY=${PORKBUN_API_KEY}
-      - PORKBUN_SECRET_API_KEY=${PORKBUN_SECRET_API_KEY}
-      - CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN}
+    env_file: .env
     networks:
       - public
     labels:
-      # Traefik Dashboard exposed on nginx.tbs.amn.gg
       - traefik.enable=true
-      - traefik.http.routers.traefik.rule=Host(`nginx.tbs.amn.gg`)
+      - traefik.http.routers.traefik.rule=Host(`nginx.tbs.amn.gg`) || Host(`traefik.tailscale.amn.gg`)
       - traefik.http.routers.traefik.service=api@internal
       - traefik.http.routers.traefik.tls.certresolver=porkbun
 
@@ -30,10 +25,10 @@ services:
     image: docker.io/fosrl/newt
     container_name: newt
     restart: unless-stopped
-    environment:
-      - PANGOLIN_ENDPOINT=https://pangolin.manko.yoga
-      - NEWT_ID=${NEWT_ID}
-      - NEWT_SECRET=${NEWT_SECRET}
+    env_file: .env
+    command:
+      - -endpoint
+      - https://pangolin.manko.yoga
     networks:
       - public
 
