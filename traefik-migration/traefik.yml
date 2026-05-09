@@ -23,6 +23,7 @@ entryPoints:
           - main: "*.amn.gg"
             sans:
               - "*.tbs.amn.gg"
+              - "*.tailscale.amn.gg"
 
 providers:
   docker:

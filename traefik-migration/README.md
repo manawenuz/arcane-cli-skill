@@ -94,14 +94,37 @@ Certificate obtained successfully
 
 Wildcard provisioning takes 1–3 minutes (includes DNS propagation delay).
 
-### 5. Verify all hosts
+### 5. Setup Tailscale DNS (optional)
+
+To access services over Tailscale:
 
 ```bash
-# Quick check
+./setup-tailscale-dns.sh
+```
+
+This creates:
+- **A record:** `manwehs.tailscale.amn.gg` → `100.79.87.65`
+- **CNAMEs:** `git.tailscale.amn.gg`, `grafana.tailscale.amn.gg`, etc. → `manwehs.tailscale.amn.gg`
+
+After DNS propagates, access services via Tailscale:
+- `https://git.tailscale.amn.gg`
+- `https://grafana.tailscale.amn.gg`
+- `https://traefik.tailscale.amn.gg` (dashboard)
+
+All Tailscale domains are covered by the same wildcard certificate: `*.tailscale.amn.gg`.
+
+### 6. Verify all hosts
+
+```bash
+# Public domains
 curl -I https://arcane.tbs.amn.gg
 curl -I https://git.tbs.amn.gg
 curl -I https://grafana.tbs.amn.gg
 curl -I https://bitwarden.tbs.amn.gg
+
+# Tailscale domains (from a Tailscale-connected device)
+curl -I https://git.tailscale.amn.gg
+curl -I https://grafana.tailscale.amn.gg
 ```
 
 ## Rollback
@@ -124,13 +147,14 @@ cp /var/data/nginx/backup-*/letsencrypt/* /var/data/nginx/letsencrypt/
 
 ```
 traefik-migration/
-├── docker-compose.yml      # Proxy project (Traefik + newt)
-├── traefik.yml             # Traefik static config
-├── dynamic.yml             # All 18 host routers & services
-├── .env.example            # API key template
-├── migrate.sh              # One-click migration script
-├── missing-hosts.json      # Archive of 14 removed hosts
-└── README.md               # This file
+├── docker-compose.yml          # Proxy project (Traefik + newt)
+├── traefik.yml                 # Traefik static config
+├── dynamic.yml                 # All host routers & services (public + tailscale)
+├── .env.example                # API key template
+├── migrate.sh                  # One-click migration script
+├── setup-tailscale-dns.sh      # Porkbun DNS setup for Tailscale domains
+├── missing-hosts.json          # Archive of removed hosts
+└── README.md                   # This file
 ```
 
 ## Post-Migration
