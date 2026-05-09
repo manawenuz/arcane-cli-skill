@@ -227,7 +227,7 @@ http:
     holyclaude:
       loadBalancer:
         servers:
-          - url: "http://holyclaude:3001"
+          - url: "http://manweholyclaude:3001"
 
     dendrite:
       loadBalancer:
