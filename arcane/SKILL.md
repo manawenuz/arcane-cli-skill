@@ -389,6 +389,23 @@ arcane environments switch
 arcane projects list
 ```
 
+## Pagination Behavior
+
+⚠️ **Important:** `arcane-cli` list commands are paginated server-side (20 items per page), but the CLI does **not** expose `--page` or `--start` flags for `containers list` or `projects list`.
+
+```bash
+# The JSON output includes pagination metadata:
+arcane containers list -a --json | jq '.pagination'
+# {
+#   "totalPages": 2,
+#   "totalItems": 30,
+#   "currentPage": 1,
+#   "itemsPerPage": 20
+# }
+```
+
+**Workaround:** Use `docker` directly on the target host if you need to see all containers and the Arcane CLI is hiding page 2+ results. For project-specific containers, use `arcane projects get <name>` to confirm the project state even if individual containers don't appear in the paginated list.
+
 ## Tips for Agent Usage
 
 1. **Prefer `--json` for programmatic parsing** when you need to extract specific IDs or statuses.
@@ -397,3 +414,4 @@ arcane projects list
 4. **Be careful with `destroy` and `prune`** — these are destructive operations.
 5. **Always verify the active environment** before making changes on remote servers (`arcane environments list`).
 6. **For image updates**, run `arcane images updates check-all` before deciding what to pull.
+7. **Remember pagination** — if a container or project seems missing from `list` output, it may be on page 2. Use `counts` or `get <name>` to verify.

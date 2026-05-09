@@ -198,6 +198,20 @@ arcane projects list
 arcane containers list
 ```
 
+## Known Limitations
+
+### Pagination
+
+`arcane-cli` list commands are paginated server-side (20 items per page). However, the CLI **does not expose `--page` or `--start` flags** for `containers list` or `projects list`, meaning items beyond the first page may be hidden.
+
+```bash
+# Check pagination metadata in JSON output
+arcane containers list -a --json | jq '.pagination'
+# { "totalPages": 2, "totalItems": 30, "currentPage": 1, "itemsPerPage": 20 }
+```
+
+**Workaround:** Use `docker` directly on the target host if you need to see all containers.
+
 ## Global Flags
 
 | Flag | Description |
