@@ -14,8 +14,6 @@ services:
       - /var/data/traefik/certs:/letsencrypt
       - /var/run/docker.sock:/var/run/docker.sock:ro
     environment:
-      - PORKBUN_API_KEY=${PORKBUN_API_KEY}
-      - PORKBUN_SECRET_API_KEY=${PORKBUN_SECRET_API_KEY}
       - CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN}
     networks:
       - public
@@ -24,9 +22,7 @@ services:
       - traefik.enable=true
       - traefik.http.routers.traefik.rule=Host(`nginx.tbs.amn.gg`)
       - traefik.http.routers.traefik.service=api@internal
-      - traefik.http.routers.traefik.tls.certresolver=porkbun
-      - traefik.http.routers.traefik.tls.domains[0].main=*.tbs.amn.gg
-      - traefik.http.routers.traefik.tls.domains[0].sans=*.tbs.amn.gg
+      - traefik.http.routers.traefik.tls.certresolver=letsencrypt
 
   newt:
     image: docker.io/fosrl/newt

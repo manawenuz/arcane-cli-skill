@@ -18,7 +18,7 @@ entryPoints:
     address: ":443"
     http:
       tls:
-        certResolver: porkbun
+        certResolver: letsencrypt
 
 providers:
   docker:
@@ -30,17 +30,13 @@ providers:
     watch: true
 
 certificatesResolvers:
-  porkbun:
+  letsencrypt:
     acme:
       email: manwe@manko.yoga
-      storage: /letsencrypt/acme-porkbun.json
+      storage: /letsencrypt/acme.json
       caServer: https://acme-v02.api.letsencrypt.org/directory
-      dnsChallenge:
-        provider: porkbun
-        delayBeforeCheck: 60
-        resolvers:
-          - "1.1.1.1:53"
-          - "8.8.8.8:53"
+      httpChallenge:
+        entryPoint: web
   cloudflare:
     acme:
       email: manwe@manko.yoga

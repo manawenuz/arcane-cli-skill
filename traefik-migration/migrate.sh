@@ -16,16 +16,11 @@ echo ""
 echo -e "${YELLOW}[0/6] Preflight checks...${NC}"
 
 if [[ ! -f ".env" ]]; then
-    echo -e "${RED}ERROR: .env file not found. Copy .env.example to .env and fill in your API keys.${NC}"
-    exit 1
+    echo -e "${YELLOW}WARNING: .env file not found. Using defaults.${NC}"
+    touch .env
 fi
 
 source .env
-
-if [[ -z "${PORKBUN_API_KEY:-}" || -z "${PORKBUN_SECRET_API_KEY:-}" ]]; then
-    echo -e "${RED}ERROR: Porkbun API keys not set in .env${NC}"
-    exit 1
-fi
 
 if ! command -v docker &> /dev/null; then
     echo -e "${RED}ERROR: docker command not found${NC}"

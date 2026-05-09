@@ -8,7 +8,7 @@ Migration from **Nginx Proxy Manager** to **Traefik v3** for the Arcane-managed 
 |---|---|---|
 | **Proxy** | jc21/nginx-proxy-manager | traefik:v3.3 |
 | **Config** | Web UI + SQLite DB | `traefik.yml` + `dynamic.yml` |
-| **SSL** | HTTP challenge | DNS challenge (Porkbun + Cloudflare) |
+| **SSL** | HTTP challenge | HTTP challenge (Let's Encrypt) |
 | **Discovery** | Manual host entry per container | File provider (single `dynamic.yml`) |
 | **Dashboard** | NPM UI on port 81 | Traefik dashboard on `nginx.tbs.amn.gg/dashboard/` |
 
@@ -41,9 +41,8 @@ See `missing-hosts.json` for the full list of hosts whose backing containers no 
 
 ## Prerequisites
 
-1. **Porkbun API Key + Secret** — for `*.amn.gg` / `*.tbs.amn.gg` wildcard certs
-2. **Cloudflare API Token** — for `*.manko.yoga` (pre-configured for future use)
-3. **SSH access** to the Arcane Docker host
+1. **Cloudflare API Token** — for `*.manko.yoga` (optional, pre-configured for future use)
+2. **SSH access** to the Arcane Docker host
 
 ## Migration Steps
 
@@ -59,7 +58,7 @@ cd /root/traefik-migration
 
 ```bash
 cp .env.example .env
-# Edit .env and add your Porkbun + Cloudflare API credentials
+# Edit .env and add your Cloudflare API token (optional, for future domains)
 nano .env
 ```
 
@@ -79,7 +78,7 @@ This script will:
 
 ### 4. Monitor certificate issuance
 
-Traefik will request new wildcard certificates via DNS challenge:
+Traefik will request certificates via HTTP challenge:
 
 ```bash
 docker logs -f traefik
@@ -92,7 +91,7 @@ Testing certificate renew...
 Certificate obtained successfully
 ```
 
-Certificate provisioning can take 1–5 minutes depending on DNS propagation.
+First certificates are usually issued within 30–60 seconds.
 
 ### 5. Verify all hosts
 

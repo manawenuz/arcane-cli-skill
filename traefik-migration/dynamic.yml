@@ -26,7 +26,7 @@ http:
       rule: "Host(`adguard.tbs.amn.gg`)"
       service: adguard
       tls:
-        certResolver: porkbun
+        certResolver: letsencrypt
       middlewares:
         - security-headers
         - compress
@@ -36,7 +36,7 @@ http:
       rule: "Host(`alex.amn.gg`)"
       service: holyclaude
       tls:
-        certResolver: porkbun
+        certResolver: letsencrypt
       middlewares:
         - security-headers
         - compress
@@ -45,7 +45,7 @@ http:
       rule: "Host(`alex.tbs.amn.gg`)"
       service: holyclaude
       tls:
-        certResolver: porkbun
+        certResolver: letsencrypt
       middlewares:
         - security-headers
         - compress
@@ -55,7 +55,7 @@ http:
       rule: "Host(`amn.gg`) && Path(`/.well-known/matrix/server`)"
       service: dendrite-wellknown-server
       tls:
-        certResolver: porkbun
+        certResolver: letsencrypt
       middlewares:
         - security-headers
 
@@ -63,7 +63,7 @@ http:
       rule: "Host(`amn.gg`) && Path(`/.well-known/matrix/client`)"
       service: dendrite-wellknown-client
       tls:
-        certResolver: porkbun
+        certResolver: letsencrypt
       middlewares:
         - security-headers
 
@@ -71,7 +71,7 @@ http:
       rule: "Host(`amn.gg`)"
       service: dendrite
       tls:
-        certResolver: porkbun
+        certResolver: letsencrypt
       middlewares:
         - security-headers
         - compress
@@ -81,7 +81,7 @@ http:
       rule: "Host(`arcane.tbs.amn.gg`)"
       service: arcane
       tls:
-        certResolver: porkbun
+        certResolver: letsencrypt
       middlewares:
         - security-headers
         - compress
@@ -91,7 +91,7 @@ http:
       rule: "Host(`bitwarden.amn.gg`, `bitwarden.tbs.amn.gg`, `bt.tbs.amn.gg`) && PathPrefix(`/notifications/hub`)"
       service: bitwarden-ws
       tls:
-        certResolver: porkbun
+        certResolver: letsencrypt
       middlewares:
         - bw-ws-headers
 
@@ -99,7 +99,7 @@ http:
       rule: "Host(`bitwarden.amn.gg`, `bitwarden.tbs.amn.gg`, `bt.tbs.amn.gg`)"
       service: bitwarden
       tls:
-        certResolver: porkbun
+        certResolver: letsencrypt
       middlewares:
         - security-headers
         - compress
@@ -109,7 +109,7 @@ http:
       rule: "Host(`git.tbs.amn.gg`)"
       service: forgejo
       tls:
-        certResolver: porkbun
+        certResolver: letsencrypt
       middlewares:
         - security-headers
         - compress
@@ -119,7 +119,7 @@ http:
       rule: "Host(`grafana.tbs.amn.gg`)"
       service: grafana
       tls:
-        certResolver: porkbun
+        certResolver: letsencrypt
       middlewares:
         - security-headers
         - compress
@@ -129,7 +129,7 @@ http:
       rule: "Host(`manclaude.tbs.amn.gg`)"
       service: manweholyclaude
       tls:
-        certResolver: porkbun
+        certResolver: letsencrypt
       middlewares:
         - security-headers
         - compress
@@ -139,7 +139,7 @@ http:
       rule: "Host(`matrix.amn.gg`) && Path(`/.well-known/matrix/server`)"
       service: dendrite-wellknown-server
       tls:
-        certResolver: porkbun
+        certResolver: letsencrypt
       middlewares:
         - security-headers
 
@@ -147,7 +147,7 @@ http:
       rule: "Host(`matrix.amn.gg`) && Path(`/.well-known/matrix/client`)"
       service: dendrite-wellknown-client
       tls:
-        certResolver: porkbun
+        certResolver: letsencrypt
       middlewares:
         - security-headers
 
@@ -155,7 +155,7 @@ http:
       rule: "Host(`matrix.amn.gg`)"
       service: dendrite
       tls:
-        certResolver: porkbun
+        certResolver: letsencrypt
       middlewares:
         - security-headers
         - compress
@@ -165,7 +165,7 @@ http:
       rule: "Host(`maxun-api.tbs.amn.gg`)"
       service: maxun-api
       tls:
-        certResolver: porkbun
+        certResolver: letsencrypt
       middlewares:
         - security-headers
         - compress
@@ -174,7 +174,7 @@ http:
       rule: "Host(`maxun.tbs.amn.gg`)"
       service: maxun
       tls:
-        certResolver: porkbun
+        certResolver: letsencrypt
       middlewares:
         - security-headers
         - compress
@@ -184,7 +184,7 @@ http:
       rule: "Host(`metube.tbs.amn.gg`)"
       service: metube
       tls:
-        certResolver: porkbun
+        certResolver: letsencrypt
       middlewares:
         - security-headers
         - compress
@@ -194,7 +194,7 @@ http:
       rule: "Host(`stash.manwe.amn.gg`)"
       service: stash
       tls:
-        certResolver: porkbun
+        certResolver: letsencrypt
       middlewares:
         - security-headers
         - compress
@@ -203,7 +203,7 @@ http:
       rule: "Host(`stash.tbs.amn.gg`)"
       service: stash
       tls:
-        certResolver: porkbun
+        certResolver: letsencrypt
       middlewares:
         - security-headers
         - compress
@@ -213,7 +213,7 @@ http:
       rule: "Host(`warsmash.tbs.amn.gg`)"
       service: warsmash
       tls:
-        certResolver: porkbun
+        certResolver: letsencrypt
       middlewares:
         - security-headers
         - compress
