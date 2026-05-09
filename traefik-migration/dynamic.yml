@@ -1,0 +1,300 @@
+http:
+  middlewares:
+    security-headers:
+      headers:
+        customResponseHeaders:
+          X-Robots-Tag: "none,noarchive,nosnippet,notranslate,noimageindex"
+          Server: ""
+        sslProxyHeaders:
+          X-Forwarded-Proto: https
+        contentSecurityPolicy: "upgrade-insecure-requests"
+        customFrameOptionsValue: "SAMEORIGIN"
+        referrerPolicy: "strict-origin-when-cross-origin"
+
+    compress:
+      compress: {}
+
+    # Bitwarden WebSocket support
+    bw-ws-headers:
+      headers:
+        customRequestHeaders:
+          X-Real-IP: "{client_ip}"
+
+  routers:
+    # ─── adguard ───
+    adguard:
+      rule: "Host(`adguard.tbs.amn.gg`)"
+      service: adguard
+      tls:
+        certResolver: porkbun
+      middlewares:
+        - security-headers
+        - compress
+
+    # ─── alex (holyclaude) ───
+    alex-amn:
+      rule: "Host(`alex.amn.gg`)"
+      service: holyclaude
+      tls:
+        certResolver: porkbun
+      middlewares:
+        - security-headers
+        - compress
+
+    alex-tbs:
+      rule: "Host(`alex.tbs.amn.gg`)"
+      service: holyclaude
+      tls:
+        certResolver: porkbun
+      middlewares:
+        - security-headers
+        - compress
+
+    # ─── matrix well-known (amn.gg) ───
+    amn-wellknown-server:
+      rule: "Host(`amn.gg`) && Path(`/.well-known/matrix/server`)"
+      service: dendrite-wellknown-server
+      tls:
+        certResolver: porkbun
+      middlewares:
+        - security-headers
+
+    amn-wellknown-client:
+      rule: "Host(`amn.gg`) && Path(`/.well-known/matrix/client`)"
+      service: dendrite-wellknown-client
+      tls:
+        certResolver: porkbun
+      middlewares:
+        - security-headers
+
+    amn-default:
+      rule: "Host(`amn.gg`)"
+      service: dendrite
+      tls:
+        certResolver: porkbun
+      middlewares:
+        - security-headers
+        - compress
+
+    # ─── arcane ───
+    arcane:
+      rule: "Host(`arcane.tbs.amn.gg`)"
+      service: arcane
+      tls:
+        certResolver: porkbun
+      middlewares:
+        - security-headers
+        - compress
+
+    # ─── bitwarden ───
+    bitwarden-notifications:
+      rule: "Host(`bitwarden.amn.gg`, `bitwarden.tbs.amn.gg`, `bt.tbs.amn.gg`) && PathPrefix(`/notifications/hub`)"
+      service: bitwarden-ws
+      tls:
+        certResolver: porkbun
+      middlewares:
+        - bw-ws-headers
+
+    bitwarden:
+      rule: "Host(`bitwarden.amn.gg`, `bitwarden.tbs.amn.gg`, `bt.tbs.amn.gg`)"
+      service: bitwarden
+      tls:
+        certResolver: porkbun
+      middlewares:
+        - security-headers
+        - compress
+
+    # ─── git (forgejo) ───
+    git:
+      rule: "Host(`git.tbs.amn.gg`)"
+      service: forgejo
+      tls:
+        certResolver: porkbun
+      middlewares:
+        - security-headers
+        - compress
+
+    # ─── grafana ───
+    grafana:
+      rule: "Host(`grafana.tbs.amn.gg`)"
+      service: grafana
+      tls:
+        certResolver: porkbun
+      middlewares:
+        - security-headers
+        - compress
+
+    # ─── manclaude ───
+    manclaude:
+      rule: "Host(`manclaude.tbs.amn.gg`)"
+      service: manweholyclaude
+      tls:
+        certResolver: porkbun
+      middlewares:
+        - security-headers
+        - compress
+
+    # ─── matrix well-known (matrix.amn.gg) ───
+    matrix-wellknown-server:
+      rule: "Host(`matrix.amn.gg`) && Path(`/.well-known/matrix/server`)"
+      service: dendrite-wellknown-server
+      tls:
+        certResolver: porkbun
+      middlewares:
+        - security-headers
+
+    matrix-wellknown-client:
+      rule: "Host(`matrix.amn.gg`) && Path(`/.well-known/matrix/client`)"
+      service: dendrite-wellknown-client
+      tls:
+        certResolver: porkbun
+      middlewares:
+        - security-headers
+
+    matrix-default:
+      rule: "Host(`matrix.amn.gg`)"
+      service: dendrite
+      tls:
+        certResolver: porkbun
+      middlewares:
+        - security-headers
+        - compress
+
+    # ─── maxun (external IPs) ───
+    maxun-api:
+      rule: "Host(`maxun-api.tbs.amn.gg`)"
+      service: maxun-api
+      tls:
+        certResolver: porkbun
+      middlewares:
+        - security-headers
+        - compress
+
+    maxun:
+      rule: "Host(`maxun.tbs.amn.gg`)"
+      service: maxun
+      tls:
+        certResolver: porkbun
+      middlewares:
+        - security-headers
+        - compress
+
+    # ─── metube ───
+    metube:
+      rule: "Host(`metube.tbs.amn.gg`)"
+      service: metube
+      tls:
+        certResolver: porkbun
+      middlewares:
+        - security-headers
+        - compress
+
+    # ─── stash ───
+    stash-manwe:
+      rule: "Host(`stash.manwe.amn.gg`)"
+      service: stash
+      tls:
+        certResolver: porkbun
+      middlewares:
+        - security-headers
+        - compress
+
+    stash-tbs:
+      rule: "Host(`stash.tbs.amn.gg`)"
+      service: stash
+      tls:
+        certResolver: porkbun
+      middlewares:
+        - security-headers
+        - compress
+
+    # ─── warsmash ───
+    warsmash:
+      rule: "Host(`warsmash.tbs.amn.gg`)"
+      service: warsmash
+      tls:
+        certResolver: porkbun
+      middlewares:
+        - security-headers
+        - compress
+
+  services:
+    adguard:
+      loadBalancer:
+        servers:
+          - url: "http://adguard-adguardhome-1:80"
+
+    holyclaude:
+      loadBalancer:
+        servers:
+          - url: "http://holyclaude:3001"
+
+    dendrite:
+      loadBalancer:
+        servers:
+          - url: "http://chatserver-dendrite-1:8008"
+
+    dendrite-wellknown-server:
+      loadBalancer:
+        servers:
+          - url: "http://chatserver-dendrite-1:8008"
+
+    dendrite-wellknown-client:
+      loadBalancer:
+        servers:
+          - url: "http://chatserver-dendrite-1:8006"
+
+    arcane:
+      loadBalancer:
+        servers:
+          - url: "http://arcane:3552"
+
+    bitwarden:
+      loadBalancer:
+        servers:
+          - url: "http://bitwarden-bitwarden-1:80"
+
+    bitwarden-ws:
+      loadBalancer:
+        servers:
+          - url: "http://bitwarden-bitwarden-1:3012"
+
+    forgejo:
+      loadBalancer:
+        servers:
+          - url: "http://forgejo:3000"
+
+    grafana:
+      loadBalancer:
+        servers:
+          - url: "http://grafana:3000"
+
+    manweholyclaude:
+      loadBalancer:
+        servers:
+          - url: "http://manweholyclaude:3001"
+
+    maxun-api:
+      loadBalancer:
+        servers:
+          - url: "http://172.16.81.175:8080"
+
+    maxun:
+      loadBalancer:
+        servers:
+          - url: "http://172.16.81.175:5173"
+
+    metube:
+      loadBalancer:
+        servers:
+          - url: "http://metube:8081"
+
+    stash:
+      loadBalancer:
+        servers:
+          - url: "http://stash:9999"
+
+    warsmash:
+      loadBalancer:
+        servers:
+          - url: "http://warsmash:80"

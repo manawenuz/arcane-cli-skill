@@ -1,0 +1,106 @@
+{
+  "archived_at": "2026-05-09T15:00:00Z",
+  "source": "nginx-proxy-manager",
+  "reason": "containers not found in arcane environment",
+  "total_removed": 14,
+  "hosts": [
+    {
+      "domain": "importer.tbs.amn.gg",
+      "forward_host": "ezbookkeeping-importer",
+      "forward_port": 3000,
+      "ssl_forced": true,
+      "scheme": "http"
+    },
+    {
+      "domain": "jellyfin.tbs.amn.gg",
+      "forward_host": "jellyfin-jellyfin-1",
+      "forward_port": 8096,
+      "ssl_forced": true,
+      "scheme": "http"
+    },
+    {
+      "domain": "jellyseerr.tbs.amn.gg",
+      "forward_host": "autopirate-jellyseerr-1",
+      "forward_port": 5055,
+      "ssl_forced": true,
+      "scheme": "http"
+    },
+    {
+      "domain": "lidarr.tbs.amn.gg",
+      "forward_host": "autopirate-lidarr-1",
+      "forward_port": 8686,
+      "ssl_forced": true,
+      "scheme": "http"
+    },
+    {
+      "domain": "polybot.tbs.amn.gg",
+      "forward_host": "polymarket-grafana-1",
+      "forward_port": 3000,
+      "ssl_forced": false,
+      "scheme": "http"
+    },
+    {
+      "domain": "portainer.tbs.amn.gg",
+      "forward_host": "portainer",
+      "forward_port": 9443,
+      "ssl_forced": true,
+      "scheme": "https"
+    },
+    {
+      "domain": "prowlarr.tbs.amn.gg",
+      "forward_host": "autopirate-prowlarr-1",
+      "forward_port": 9696,
+      "ssl_forced": true,
+      "scheme": "http"
+    },
+    {
+      "domain": "radarr.tbs.amn.gg",
+      "forward_host": "autopirate-radarr-1",
+      "forward_port": 7878,
+      "ssl_forced": true,
+      "scheme": "http"
+    },
+    {
+      "domain": "sabnzbd.tbs.amn.gg",
+      "forward_host": "sabnzbd",
+      "forward_port": 8080,
+      "ssl_forced": true,
+      "scheme": "http"
+    },
+    {
+      "domain": "sonarr.tbs.amn.gg",
+      "forward_host": "autopirate-sonarr-1",
+      "forward_port": 8989,
+      "ssl_forced": true,
+      "scheme": "http"
+    },
+    {
+      "domain": "speedtest.tbs.amn.gg",
+      "forward_host": "speedtest-tracker",
+      "forward_port": 80,
+      "ssl_forced": true,
+      "scheme": "http"
+    },
+    {
+      "domain": "stashbox.tbs.amn.gg",
+      "forward_host": "stash-box",
+      "forward_port": 9998,
+      "ssl_forced": true,
+      "scheme": "http"
+    },
+    {
+      "domain": "torrent.tbs.amn.gg",
+      "forward_host": "autopirate-qbittorrent-1",
+      "forward_port": 8080,
+      "ssl_forced": true,
+      "scheme": "http"
+    },
+    {
+      "domain": "whisparr.tbs.amn.gg",
+      "forward_host": "whisparr",
+      "forward_port": 6969,
+      "ssl_forced": true,
+      "scheme": "http"
+    }
+  ]
+}

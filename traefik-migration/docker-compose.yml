@@ -1,0 +1,45 @@
+services:
+  traefik:
+    image: traefik:v3.3
+    container_name: traefik
+    restart: unless-stopped
+    ports:
+      - '0.0.0.0:80:80'
+      - '[::]:80:80'
+      - '0.0.0.0:443:443'
+      - '[::]:443:443'
+    volumes:
+      - /var/data/traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+      - /var/data/traefik/dynamic.yml:/etc/traefik/dynamic.yml:ro
+      - /var/data/traefik/certs:/letsencrypt
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - PORKBUN_API_KEY=${PORKBUN_API_KEY}
+      - PORKBUN_SECRET_API_KEY=${PORKBUN_SECRET_API_KEY}
+      - CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN}
+    networks:
+      - public
+    labels:
+      # Traefik Dashboard exposed on nginx.tbs.amn.gg
+      - traefik.enable=true
+      - traefik.http.routers.traefik.rule=Host(`nginx.tbs.amn.gg`)
+      - traefik.http.routers.traefik.service=api@internal
+      - traefik.http.routers.traefik.tls.certresolver=porkbun
+      - traefik.http.routers.traefik.tls.domains[0].main=*.tbs.amn.gg
+      - traefik.http.routers.traefik.tls.domains[0].sans=*.tbs.amn.gg
+
+  newt:
+    image: docker.io/fosrl/newt
+    container_name: newt
+    restart: unless-stopped
+    environment:
+      - PANGOLIN_ENDPOINT=https://pangolin.manko.yoga
+      - NEWT_ID=${NEWT_ID}
+      - NEWT_SECRET=${NEWT_SECRET}
+    networks:
+      - public
+
+networks:
+  public:
+    external: true
+    name: public

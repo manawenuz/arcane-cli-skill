@@ -1,0 +1,54 @@
+api:
+  dashboard: true
+  insecure: false
+
+log:
+  level: INFO
+
+entryPoints:
+  web:
+    address: ":80"
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+          permanent: true
+  websecure:
+    address: ":443"
+    http:
+      tls:
+        certResolver: porkbun
+
+providers:
+  docker:
+    exposedByDefault: false
+    network: public
+    watch: true
+  file:
+    filename: /etc/traefik/dynamic.yml
+    watch: true
+
+certificatesResolvers:
+  porkbun:
+    acme:
+      email: manwe@manko.yoga
+      storage: /letsencrypt/acme-porkbun.json
+      caServer: https://acme-v02.api.letsencrypt.org/directory
+      dnsChallenge:
+        provider: porkbun
+        delayBeforeCheck: 60
+        resolvers:
+          - "1.1.1.1:53"
+          - "8.8.8.8:53"
+  cloudflare:
+    acme:
+      email: manwe@manko.yoga
+      storage: /letsencrypt/acme-cloudflare.json
+      caServer: https://acme-v02.api.letsencrypt.org/directory
+      dnsChallenge:
+        provider: cloudflare
+        delayBeforeCheck: 10
+        resolvers:
+          - "1.1.1.1:53"
+          - "8.8.8.8:53"
