@@ -1,423 +1,427 @@
 ---
-name: arcane
-description: Manage Docker containers, projects, images, networks, and volumes via the Arcane CLI (getarcaneapp/arcane). Covers projects, containers, images, templates, environments, registries, system operations, and admin tasks.
+name: arcane-cli
+description: |
+  Arcane Docker management platform CLI (arcane-cli).
+  Use for all operations against the Arcane server: containers, projects
+  (Docker Compose), images, volumes, networks, environments, registries,
+  GitOps syncs, background jobs, admin, and system tasks.
+
+  Triggers: arcane, arcane-cli, docker management, project up/down,
+  container start/stop/redeploy, image updates, GitOps sync, environments.
 ---
 
 # Arcane CLI Skill
 
-## Overview
+## Critical Facts
 
-Arcane is a modern Docker management platform with a CLI (`arcane-cli` or `arcane`) that provides comprehensive container, image, network, volume, project, and template management. Use this skill when the user wants to manage Docker resources through Arcane.
+- **Binary name**: `arcane-cli`
+- **Config file**: `~/.config/arcanecli.yml`
+- **Local environment ID**: `"0"` — the Arcane manager's own Docker socket. Always pass `--env <id>` explicitly; if `environments list` returns empty, the API key is missing `environments:list` permission.
+- **API key format**: `arc_<hex>` — set via `arcane-cli config set api-key arc_...` or directly in the YAML
+- **Output**: `--output json` (or `--json`) for machine-readable output; default is human text
+- **Host-specific config** (env IDs, server URL): read `~/.agentSecrets/arcane-cli/secrets.md` before running any commands
 
-**Binary names:** `arcane-cli` or `arcane` (synonymous)
-**Config file:** `~/.config/arcanecli.yml`
-**Default output:** Human-readable tables; use `--json` for structured output
+## JSON Response Shape
 
-## Configuration
+Most list/get commands return `{"success": true, "data": [...], "pagination": {...}}` — index into `.data`.
 
-The CLI stores server URL, tokens, and default environment in `~/.config/arcanecli.yml`.
+**Flat responses (no wrapper)** — these commands return a plain object directly:
 
-```bash
-# View current config
-arcane config show
-
-# Test API connection
-arcane config test
-
-# Print config file path
-arcane config path
-```
-
-**Environments** are remote Arcane instances. The default environment (ID `0`) is usually "Local Docker".
-
-```bash
-# List environments
-arcane environments list
-
-# Switch default environment (interactive)
-arcane environments switch
-
-# Test a specific environment
-arcane environments test <id>
-```
-
-## Authentication
+| Command | Shape |
+|---|---|
+| `containers counts` | `{runningContainers, stoppedContainers, totalContainers}` |
+| `images updates summary` | `{totalImages, imagesWithUpdates, digestUpdates, errorsCount}` |
+| `volumes counts` | `{inuse, total, unused}` |
+| `networks counts` | `{inuse, unused, total}` |
+| `jobs get` | flat object with cron schedule strings per job |
+| `updater status` | `{updatingContainers, updatingProjects, containerIds, projectIds}` |
+| `settings list` | returns a JSON array directly |
+| `system upgrade-check` | `{canUpgrade, error, message}` |
+| `system docker-info` | raw Docker daemon info struct |
 
 ```bash
-# Login via OIDC device authorization
-arcane auth login
+# list/get — index .data
+arcane-cli containers list --env 0 --json | jq '.data[] | {id, name: .names[0]}'
 
-# Get current user
-arcane auth me
-
-# Refresh token
-arcane auth refresh
-
-# Change password
-arcane auth password
-
-# Logout
-arcane auth logout
+# flat — use directly
+arcane-cli containers counts --env 0 --json | jq '.runningContainers'
+arcane-cli images updates summary --env 0 --json | jq '.imagesWithUpdates'
 ```
 
-## Projects
+Container fields: `id`, `names` (array, use `names[0]`), `image`, `state`, `status`, `ports`, `labels`, `mounts`, `composeInfo`
 
-Projects are logical groupings of containers (typically Docker Compose stacks).
+Project fields: `id`, `name`, `dirName`, `status`, `serviceCount`, `runningCount`, `updateInfo`, `runtimeServices`, `createdAt`, `updatedAt`
+
+## Setup / Auth
 
 ```bash
-# List projects
-arcane projects list
-arcane projects list --json
-arcane projects list -n 50
+# Show current config
+arcane-cli config show
 
-# Get project counts
-arcane projects counts
+# Set server and key
+arcane-cli config set server-url https://your-arcane-server.com
+arcane-cli config set api-key arc_xxxxx
 
-# Get project details
-arcane projects get <project-id|name>
+# Test connection
+arcane-cli config test
 
-# Lifecycle
-arcane projects up <project-id|name>       # Start
-arcane projects down <project-id|name>     # Stop
-arcane projects restart <project-id|name>  # Restart
-arcane projects pull <project-id|name>     # Pull latest images
-arcane projects redeploy <project-id|name> # Pull + restart
+# OIDC login (requires OIDC enabled on server)
+arcane-cli auth login
 
-# Destroy project and all its containers
-arcane projects destroy <project-id|name>
+# Who am I
+arcane-cli auth me
+
+# Switch default environment interactively
+arcane-cli environments switch
 ```
 
-**Sample `projects list` output:**
-```
-ID                                    NAME        STATUS   SERVICES  RUNNING  CREATED
-48eb202f-f84b-4a1a-a905-a0b4f761ff10  stash       stopped  1         0        2026-02-14T16:34:36Z
-3be0da9b-8753-40e7-ab9b-5d359dbffe48  arcane      running  1         1        2026-02-14T16:37:26Z
-ae23e8ee-f28c-42ea-b386-013755cb5c85  forgejo     running  4         4        2026-04-02T05:14:48Z
-```
+## Global Flags (work on every command)
+
+| Flag | Description |
+|---|---|
+| `--env <id>` | Override default environment for this call (`"0"` = local) |
+| `--output text\|json` | Output mode (alias: `--json`) |
+| `--yes` / `-y` | Skip confirmation prompts |
+| `--no-color` | Disable ANSI color |
+| `--request-timeout <dur>` | e.g. `--request-timeout 2m` |
+| `--log-level debug` | Verbose debug output |
 
 ## Containers
 
 ```bash
-# List containers
-arcane containers list
-arcane containers list --json
-arcane containers list -a               # Include stopped
+arcane-cli containers list                          # running containers
+arcane-cli containers list --all                    # include stopped
+arcane-cli containers list --limit 50 --start 0    # paginate
+arcane-cli containers list --updates has_update     # filter by update status
+arcane-cli containers get <id|name>
+arcane-cli containers start <id|name>
+arcane-cli containers stop <id|name>
+arcane-cli containers restart <id|name>
+arcane-cli containers redeploy <id|name>           # pull image + recreate
+arcane-cli containers update <id|name>             # update container config
+arcane-cli containers delete <id|name>
+arcane-cli containers counts                        # status counts
+arcane-cli containers updates                       # list containers with available updates
 
-# Get container counts
-arcane containers counts
+# Create a container
+arcane-cli containers create \
+  --name myapp \
+  --image nginx:latest \
+  --port 8080:80 \
+  --env KEY=VALUE \
+  --volume /host:/container \
+  --network shared-web \
+  --restart unless-stopped
 
-# Get container details
-arcane containers get <container-id|name>
-
-# Lifecycle
-arcane containers start <container-id|name>
-arcane containers stop <container-id|name>
-arcane containers restart <container-id|name>
-
-# Delete a container
-arcane containers delete <container-id|name>
-
-# Update a container
-arcane containers update <container-id|name>
+# Create from JSON file
+arcane-cli containers create --file container.json
 ```
 
-**Sample `containers list` output:**
-```
-ID            NAME                   IMAGE                                STATE    STATUS
-ca6fe6d6332c  kiro-gateway           kiro-gateway-kiro-gateway            running  Up 6 hours (healthy)
-195dd60e14b7  mikrotail-bridge       mikrotail-rs:dev                     exited   Exited (137) 2 weeks ago
+## Projects (Docker Compose)
+
+```bash
+arcane-cli projects list
+arcane-cli projects list --updates has_update      # filter by update status
+arcane-cli projects get <id|name>
+arcane-cli projects up <id|name>                   # start services
+arcane-cli projects down <id|name>                 # stop services
+arcane-cli projects restart <id|name>
+arcane-cli projects redeploy <id|name>             # pull images + restart
+arcane-cli projects pull <id|name>                 # pull latest images only
+arcane-cli projects destroy <id|name>              # remove all containers
+arcane-cli projects destroy <id|name> --force      # skip confirmation
+arcane-cli projects counts
+
+# Create project from compose file
+arcane-cli projects create \
+  --name myproject \
+  --file docker-compose.yml \
+  --env-file .env
+
+# Update project (only pass flags you want to change)
+arcane-cli projects update <id|name> --file docker-compose.yml
+arcane-cli projects update <id|name> --name new-name
+arcane-cli projects update-includes <id|name> --file override.yml
 ```
 
 ## Images
 
 ```bash
-# List images
-arcane images list
-arcane images list --json
-arcane images list --search nginx
-arcane images list --sort size --order desc
+arcane-cli images list
+arcane-cli images get <id|name>
+arcane-cli images remove <id|name>
+arcane-cli images pull nginx:latest
+arcane-cli images prune                            # remove unused images
+arcane-cli images counts
+arcane-cli images upload image.tar                 # upload from tar archive
 
-# Get image counts
-arcane images counts
-
-# Get image details
-arcane images get <image-id|name>
-
-# Pull an image
-arcane images pull [IMAGE_NAME]
-
-# Remove an image
-arcane images remove <image-id|name>
-
-# Prune unused images
-arcane images prune
-
-# Upload from tar archive
-arcane images upload [FILE]
-```
-
-**Image updates:**
-```bash
-# Check for updates
-arcane images updates check
-arcane images updates check-all
-arcane images updates check-image <image-id>
-arcane images updates summary
-```
-
-**Sample `images list` output:**
-```
-ID                                                                       REPOSITORY:TAG                SIZE    IN USE
-sha256:a7cf8fb7b72c8984b2eb1ac301afa8b01eaf77bf49bd69e86fa57dfcea03b317  kiro-gateway-kiro-gateway:latest  362.5M  Yes
-```
-
-## Networks
-
-```bash
-# List networks
-arcane networks list
-
-# Get network counts
-arcane networks counts
-
-# Get network details
-arcane networks get <network-id|name>
-
-# Delete a network
-arcane networks delete <network-id|name>
-
-# Prune unused networks
-arcane networks prune
+# Image update checks
+arcane-cli images updates check                    # check default image for updates
+arcane-cli images updates check-all                # check all images
+arcane-cli images updates check-image <image-id>   # check specific image
+arcane-cli images updates summary
 ```
 
 ## Volumes
 
 ```bash
-# List volumes
-arcane volumes list
-
-# Get volume counts
-arcane volumes counts
-
-# Get volume details
-arcane volumes get <volume-name>
-
-# Get volume sizes
-arcane volumes sizes
-
-# Get specific volume usage
-arcane volumes usage <volume-name>
-
-# Delete a volume
-arcane volumes delete <volume-name>
-
-# Prune unused volumes
-arcane volumes prune
+arcane-cli volumes list
+arcane-cli volumes get <volume-name>
+arcane-cli volumes delete <volume-name>
+arcane-cli volumes prune                           # remove unused volumes
+arcane-cli volumes counts
+arcane-cli volumes sizes                           # disk usage summary
+arcane-cli volumes usage <volume-name>             # specific volume usage
+arcane-cli volumes create --name myvolume
 ```
 
-## Templates
-
-Templates are Docker Compose templates managed by Arcane.
+## Networks
 
 ```bash
-# List local templates
-arcane templates list
-
-# List all templates (including remote)
-arcane templates all
-
-# Get default templates
-arcane templates default
-
-# Get template content
-arcane templates content <template-id>
-
-# Get template variables
-arcane templates variables
-
-# Delete a template
-arcane templates delete <template-id>
-
-# List template registries
-arcane templates registries
-
-# Delete a template registry
-arcane templates delete-registry <registry-id>
+arcane-cli networks list
+arcane-cli networks get <id|name>
+arcane-cli networks delete <id|name>
+arcane-cli networks prune
+arcane-cli networks counts
 ```
 
-## Container Registries
+## Environments
+
+Environments are Docker hosts managed by Arcane. ID `"0"` is always the Arcane manager's own local Docker socket. Remote environments have UUID IDs.
+
+**If `environments list` returns empty**, the API key is missing `environments:list` permission — create a new key with full admin permissions. Host-specific env IDs live in `~/.agentSecrets/arcane-cli/secrets.md`.
 
 ```bash
-# List registries
-arcane registries list
-
-# Sync registries
-arcane registries sync
-
-# Test registry connection
-arcane registries test <registry-id>
-
-# Delete a registry
-arcane registries delete <registry-id>
+arcane-cli environments list
+arcane-cli environments get <id>
+arcane-cli environments test <id>                  # test connectivity
+arcane-cli environments switch                     # interactive default-env picker
+arcane-cli environments update <id>
+arcane-cli environments version <id>               # get agent version on that env
+arcane-cli environments delete <id>
 ```
 
-## System Operations
+## Registries
 
 ```bash
-# Start all containers
-arcane system containers-start-all
+arcane-cli registries list
+arcane-cli registries get <id>
+arcane-cli registries test <id>
+arcane-cli registries sync                         # sync registry configs
+arcane-cli registries update <id>
+arcane-cli registries delete <id>
+```
 
-# Stop all containers
-arcane system containers-stop-all
+## GitOps
 
-# Get Docker daemon info
-arcane system docker-info
+```bash
+arcane-cli gitops list
+arcane-cli gitops create
+arcane-cli gitops get <id|name>
+arcane-cli gitops update <id|name>
+arcane-cli gitops delete <id|name>
+arcane-cli gitops status <id|name>
+arcane-cli gitops sync <id|name>                   # trigger a sync now
+arcane-cli gitops files <id|name>                  # list files in the git repo
+arcane-cli gitops import                           # import sync config
+```
 
-# Prune all unused resources (containers, networks, images, volumes)
-arcane system prune
+## Git Repositories
+
+```bash
+arcane-cli repos list
+arcane-cli repos create
+arcane-cli repos get <repository>
+arcane-cli repos update <repository>
+arcane-cli repos delete <repository>
+arcane-cli repos test <repository>
+arcane-cli repos branches <repository>
+arcane-cli repos files <repository>
+arcane-cli repos sync                              # sync all repos
 ```
 
 ## Background Jobs
 
 ```bash
-# Get job schedule intervals
-arcane jobs get
+arcane-cli jobs get                                # view job schedules
+arcane-cli jobs update                             # update schedule intervals
+```
 
-# Update job schedule intervals
-arcane jobs update
+## Updater (auto-update workflow)
+
+```bash
+arcane-cli updater status
+arcane-cli updater run                             # trigger update run
+arcane-cli updater history
 ```
 
 ## Settings
 
 ```bash
-# List environment settings
-arcane settings list
+arcane-cli settings list                           # list environment settings
+arcane-cli settings update                         # update environment settings
+arcane-cli settings public                         # list public settings
+```
+
+## System
+
+```bash
+arcane-cli system prune                            # prune all unused resources
+arcane-cli system docker-info                      # Docker daemon info
+arcane-cli system containers-start-all            # start all containers
+arcane-cli system containers-stop-all             # stop all containers
+arcane-cli system start-stopped                   # start only stopped containers
+arcane-cli system convert "docker run ..."        # convert docker run → compose YAML
+arcane-cli system upgrade                          # trigger Arcane self-upgrade
+arcane-cli system upgrade-check                   # check if upgrade is available
 ```
 
 ## Admin
 
-### API Keys
 ```bash
-arcane admin api-keys list
-arcane admin api-keys get <id>
-arcane admin api-keys create <name>
-arcane admin api-keys delete <id>
+# API keys
+arcane-cli admin api-keys list
+arcane-cli admin api-keys create <name>
+arcane-cli admin api-keys get <id>
+arcane-cli admin api-keys update <id>
+arcane-cli admin api-keys delete <id>
+
+# Users
+arcane-cli admin users list
+arcane-cli admin users create
+arcane-cli admin users get <user-id>
+arcane-cli admin users update <user-id>            # update profile (roles managed separately)
+arcane-cli admin users delete <user-id>
+
+# Roles & RBAC
+arcane-cli admin roles list
+arcane-cli admin roles get <role-id>
+arcane-cli admin roles create
+arcane-cli admin roles update <role-id>
+arcane-cli admin roles delete <role-id>
+arcane-cli admin roles permissions                 # full permission manifest
+arcane-cli admin roles assignments <user-id>       # list user's current roles
+arcane-cli admin roles assign <user-id> \
+  --role role_editor:env_prod \
+  --role role_viewer                          # replace user's role assignments
+
+# OIDC group → role mappings
+arcane-cli admin oidc-mappings list
+arcane-cli admin oidc-mappings create --claim docker-admins --role role_admin
+arcane-cli admin oidc-mappings update <id>
+arcane-cli admin oidc-mappings delete <id>
 ```
 
-### Users
-```bash
-arcane admin users list
-arcane admin users delete <user-id>
-```
-
-### Events
-```bash
-arcane admin events list
-arcane admin events list-env
-arcane admin events delete <event-id>
-```
-
-### Notifications
-```bash
-arcane admin notifications settings-get
-arcane admin notifications apprise-get
-```
-
-## Updater
+## Templates (Docker Compose templates)
 
 ```bash
-# Get updater status
-arcane updater status
-
-# Run updater
-arcane updater run
-
-# Get updater history
-arcane updater history
+arcane-cli templates list                          # list local templates
+arcane-cli templates default                       # get built-in default templates
+arcane-cli templates get <template-id|name>        # get template content
+arcane-cli templates content <template-id>         # get raw template content
+arcane-cli templates variables <template-id>       # list template variables
+arcane-cli templates registries                    # list template registries
+arcane-cli templates delete <template-id>
+arcane-cli templates delete-registry <registry-id>
 ```
 
-## Version
+## Utilities
 
 ```bash
-# Get server version
-arcane version
+arcane-cli generate                                # generate secrets / tokens
+arcane-cli auth federated                          # exchange CI OIDC token for Arcane token
+arcane-cli doctor                                  # run local CLI diagnostics
+arcane-cli version
+arcane-cli self-update                             # update the CLI binary
+arcane-cli completion bash|zsh|fish|powershell
 ```
 
-## Global Flags
+## Config File Reference (`~/.config/arcanecli.yml`)
 
-These flags work with almost any command:
-
-- `-c, --config <path>` — Path to config file (default: `~/.config/arcanecli.yml`)
-- `--json` — Output in JSON format
-- `--log-level <level>` — Log level: `debug`, `info`, `warn`, `error`, `fatal`, `panic`
-
-## Common Workflows
-
-### Restart a project and verify
-```bash
-arcane projects restart forgejo
-arcane projects get forgejo
-arcane containers list | grep forgejo
+```yaml
+server_url: https://your-arcane-server.com/
+api_key: arc_xxxxx
+default_environment: "0"
+log_level: info
+pagination:
+  default:
+    limit: 25
+  resources:
+    containers:
+      limit: 50
+    images:
+      limit: 100
+    volumes:
+      limit: 40
+    networks:
+      limit: 40
 ```
 
-### Clean up unused resources
-```bash
-arcane images prune
-arcane volumes prune
-arcane networks prune
-# Or prune everything at once:
-arcane system prune
-```
+Config keys for `arcane-cli config set`: `server-url`, `api-key`, `default-environment`, `log-level`
 
-### Check overall health
-```bash
-arcane projects counts
-arcane containers counts
-arcane images updates summary
-```
-
-### Pull latest images and redeploy a project
-```bash
-arcane projects pull myapp
-arcane projects redeploy myapp
-```
-
-### Switch to a remote environment and list projects
-```bash
-arcane environments switch
-# Select environment interactively, then:
-arcane projects list
-```
-
-## Pagination Behavior
-
-`arcane-cli` list commands are paginated server-side (20 items per page). Use `--start` to fetch subsequent pages:
+## Common Patterns
 
 ```bash
-# Page 1 (default)
-arcane containers list --json
+# JSON output for scripting
+arcane-cli containers list --json | jq '.[].name'
 
-# Page 2
-arcane containers list --start 20 --json
+# Target a specific environment
+arcane-cli containers list --env 2
 
-# Check pagination metadata
-arcane containers list --json | jq '.pagination'
-# {
-#   "totalPages": 2,
-#   "totalItems": 30,
-#   "currentPage": 1,
-#   "itemsPerPage": 20
-# }
+# Skip confirmation on destructive ops
+arcane-cli projects destroy myproject --yes
+
+# Check what's outdated
+arcane-cli containers updates --json
+arcane-cli projects list --updates has_update
+
+# Redeploy a project (pull + restart)
+arcane-cli projects redeploy myproject
+
+# Full system cleanup
+arcane-cli system prune --yes
 ```
 
-**Note:** `--all` cannot be combined with `--start` in some versions. Use `--start` with the default (running) list and filter client-side if needed.
+## Access Rules
 
-## Tips for Agent Usage
+**NEVER SSH into any server without explicit user permission.** Use arcane-cli for all remote container/project operations. SSH to servers is not a substitute for arcane-cli commands.
 
-1. **Prefer `--json` for programmatic parsing** when you need to extract specific IDs or statuses.
-2. **Use names over IDs** when possible — Arcane accepts either.
-3. **Check counts first** when doing bulk operations to understand the scope.
-4. **Be careful with `destroy` and `prune`** — these are destructive operations.
-5. **Always verify the active environment** before making changes on remote servers (`arcane environments list`).
-6. **For image updates**, run `arcane images updates check-all` before deciding what to pull.
-7. **Remember pagination** — if a container or project seems missing from `list` output, it may be on page 2. Use `counts` or `get <name>` to verify.
+## Project Env File Rules
+
+Arcane projects use env files (`--env-file`) that hold compose secrets (DB passwords, API keys, tokens). These rules apply whenever you're working with a project's env file — whether reading it locally, passing it to `projects create/update`, or inspecting it on the server.
+
+| Operation | Allowed | How |
+|---|---|---|
+| View keys | ✅ | `grep -o '^[^#=][^=]*' .env` — keys only, no values |
+| Check if a key exists | ✅ | `grep -q '^KEY=' .env && echo set \|\| echo missing` |
+| Count entries | ✅ | `grep -c '=' .env` |
+| Add a variable | ✅ | `echo 'KEY=value' >> .env` |
+| Pass to arcane-cli | ✅ | `arcane-cli projects create --env-file .env` — CLI sends it, Claude never reads it |
+| View values | ❌ | Never — not even partially or redacted |
+| Output file contents | ❌ | Never `cat`, `Read`, or print the file |
+
+```bash
+# ✅ What keys are configured?
+grep -o '^[^#=][^=]*' .env
+
+# ✅ How many entries?
+grep -c '=' .env
+
+# ✅ Is DATABASE_URL set?
+grep -q '^DATABASE_URL=' .env && echo "set" || echo "missing"
+
+# ✅ Deploy with env file — Claude passes the path, never reads the values
+arcane-cli projects create --name myapp --file docker-compose.yml --env-file .env
+
+# ❌ Never
+cat .env
+```
+
+## Pitfalls
+
+- `--env` is the **environment ID** (Docker host), not an env-var flag. On `containers create` specifically, `--env`/`-e` also means environment variable (KEY=VALUE) — context matters.
+- Environment ID `"0"` is always the Arcane manager's local Docker socket. It works fine as long as the API key has sufficient permissions.
+- If `environments list` returns empty or `success: false`, the API key lacks `environments:list` — generate a new full-admin key.
+- `arcane-cli projects destroy` removes all containers — use `arcane-cli projects down` to just stop them.
+- `arcane-cli config set` takes key-value pairs: `arcane-cli config set server-url https://... api-key arc_...` (multiple pairs in one call).
+- IDs and names are interchangeable for most resources (the CLI resolves either).
